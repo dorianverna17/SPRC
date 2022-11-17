@@ -71,6 +71,33 @@ bool check_resource_existence(char *resource) {
 	return false;
 }
 
+bool check_operation_permitted(char *action, char *access_token, char *resource) {
+	user_access_token *pair;
+
+	pair = get_token_pair_access(access_token);
+	
+	token_rights_t *rights = get_token_status(pair->authorization_token);
+
+	char instruction = action[0];
+
+	if (action[0] == 'E')
+		instruction = 'X';
+
+	int length;
+	for (int i = 0; i < rights->rights->size; i++) {
+		if (strcmp(rights->rights->file[i], resource) == 0) {
+			/* check if the desired instruction is in permissions */
+			length = strlen(rights->rights->permission[i]);
+			for (int j = 0; j < length; j++) {
+				if (instruction == rights->rights->permission[i][j])
+					return true;
+			}
+			return false;
+		}
+	}
+	return false;
+}
+
 void read_files() {
 	int size;
 	char buffer[BUFF_LEN];

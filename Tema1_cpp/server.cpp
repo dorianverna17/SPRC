@@ -147,9 +147,11 @@ int *validate_delegated_action_1_svc(action_request_t *p, struct svc_req *cl) {
 		printf("DENY (%s,%s,,%d)\n", action, resource, 0);
 	} else if (!check_resource_existence(p->resource)) {
 		*t = RESOURCE_NOT_FOUND;
+		pair->timeout -= 1;
 		printf("DENY (%s,%s,%s,%d)\n", action, resource, pair->access_token, pair->timeout);
 	} else if (!check_operation_permitted(action, access_token, resource)) {
 		*t = OPERATION_NOT_PERMITTED;
+		pair->timeout -= 1;
 		printf("DENY (%s,%s,%s,%d)\n", action, resource, pair->access_token, pair->timeout);
 	} else {
 		*t = PERMISSION_GRANTED;

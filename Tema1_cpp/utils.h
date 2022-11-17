@@ -37,3 +37,4 @@ struct token_rights_t *get_token_status(char *token);
 user_access_token *get_token_pair_auth(char *auth_token);
 user_access_token *get_token_pair_access(char *access_token);
 bool check_resource_existence(char *resource);
+bool check_operation_permitted(char *action, char *access_token, char *resource);

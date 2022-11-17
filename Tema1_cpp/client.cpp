@@ -206,6 +206,8 @@ void execute_actions(client_action *actions, int size, CLIENT *handle) {
 				printf("TOKEN_EXPIRED\n");
 			} else if (*status_validate == RESOURCE_NOT_FOUND) {
 				printf("RESOURCE_NOT_FOUND\n");
+			} else if (*status_validate == OPERATION_NOT_PERMITTED) {
+				printf("OPERATION_NOT_PERMITTED\n");
 			}
 		}
 	}
