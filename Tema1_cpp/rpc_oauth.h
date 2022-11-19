@@ -45,12 +45,15 @@ typedef struct authorization_token_t authorization_token_t;
 struct access_token_t {
 	status_t status;
 	char *token;
+	char *reset_token;
+	int timeout;
 };
 typedef struct access_token_t access_token_t;
 
 struct client_access_t {
 	char *user_id;
 	char *authorization_token;
+	int reset;
 };
 typedef struct client_access_t client_access_t;
 

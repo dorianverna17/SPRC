@@ -16,6 +16,9 @@ typedef struct client_status_t {
 	char *user_id;
 	char *authorization_token;
 	char *access_token;
+	char *reset_token;
+	int timeout;
+	int reset;
 } client_status_t;
 
 int read_client_actions(client_action **actions, char *file) {
@@ -126,8 +129,30 @@ void execute_actions(client_action *actions, int size, CLIENT *handle) {
 			strcpy(current_status->user_id, user);
 			current_status->authorization_token = NULL;
 			current_status->access_token = NULL;
+			current_status->reset_token = NULL;
 			statuses[statuses_size] = current_status;
 			statuses_size += 1;
+		}
+
+		if (current_status->timeout <= 0 && current_status->reset == 1 && action != REQUEST) {
+			client_access_t *current_access_status = (client_access_t *) malloc(sizeof(client_access_t));
+			current_access_status->user_id = current_status->user_id;
+			current_access_status->authorization_token = current_status->authorization_token;
+			current_access_status->reset = 1;
+
+			access_token = request_access_token_1(current_access_status, handle);
+
+			if (!current_status->access_token)
+				current_status->access_token = (char *) malloc(BUFF_LEN * sizeof(char));
+			strcpy(current_status->access_token, access_token->token);
+
+			if (current_status->reset == 1) {
+				if (!current_status->reset_token)
+					current_status->reset_token = (char *) malloc(BUFF_LEN * sizeof(char));
+				strcpy(current_status->reset_token, access_token->reset_token);
+			}
+
+			current_status->timeout = access_token->timeout;
 		}
 
 		if (action == REQUEST) {
@@ -160,7 +185,10 @@ void execute_actions(client_action *actions, int size, CLIENT *handle) {
 			client_access_t *current_access_status = (client_access_t *) malloc(sizeof(client_access_t));
 			current_access_status->user_id = current_status->user_id;
 			current_access_status->authorization_token = current_status->authorization_token;
+			current_access_status->reset = actions[i].resource[0] - '0';
 			access_token = request_access_token_1(current_access_status, handle);
+
+			current_status->reset = actions[i].resource[0] - '0';
 
 			/* check if received token is valid */
 			if (access_token->status == REQUEST_DENIED) {
@@ -169,14 +197,27 @@ void execute_actions(client_action *actions, int size, CLIENT *handle) {
 			} else if (access_token->status != STATUS_OK) {
 				printf("ERROR\n");
 			}
+
 			if (!current_status->access_token)
 				current_status->access_token = (char *) malloc(BUFF_LEN * sizeof(char));
 			strcpy(current_status->access_token, access_token->token);
 
-			printf("%s -> %s\n", authorization_token->token, access_token->token);
+			if (current_status->reset == 1) {
+				if (!current_status->reset_token)
+					current_status->reset_token = (char *) malloc(BUFF_LEN * sizeof(char));
+				strcpy(current_status->reset_token, access_token->reset_token);
+			}
+
+			current_status->timeout = access_token->timeout;
+
+			if (current_access_status->reset == 0)
+				printf("%s -> %s\n", authorization_token->token, access_token->token);
+			else if (current_access_status->reset == 1)
+				printf("%s -> %s,%s\n", authorization_token->token, access_token->token, access_token->reset_token);
 		} else {
 			action_request_t *action_req = (action_request_t *) malloc(sizeof(action_request_t));
 
+			// TODO - cast doesn't let us provide a not permited operation - test7
 			action_req->instruction = (instruction_t) action;
 			action_req->resource = actions[i].resource;
 			
@@ -192,6 +233,8 @@ void execute_actions(client_action *actions, int size, CLIENT *handle) {
 					action_req->access_token[0] = '\0';
 				}
 			}
+
+			current_status->timeout -= 1;
 
 			status_validate = validate_delegated_action_1(action_req, handle);
 			if (!status_validate) {

@@ -28,11 +28,14 @@ struct token_rights_t {
 typedef struct user_access_token_t {
 	char *authorization_token;
 	char *access_token;
+	char *reset_token;
 	int timeout;
+	int reset;
 } user_access_token;
 
 void read_files();
 client_access_t *get_user_status(char *user);
+client_access_t *get_user_status_auth(char *auth);
 struct token_rights_t *get_token_status(char *token);
 user_access_token *get_token_pair_auth(char *auth_token);
 user_access_token *get_token_pair_access(char *access_token);

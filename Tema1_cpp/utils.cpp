@@ -34,6 +34,15 @@ client_access_t *get_user_status(char *user) {
 	return NULL;
 }
 
+client_access_t *get_user_status_auth(char *auth) {
+	for (int i = 0; i < status_size; i++) {
+		if (strcmp(auth, statuses[i]->authorization_token) == 0) {
+			return statuses[i];
+		}
+	}
+	return NULL;
+}
+
 struct token_rights_t *get_token_status(char *token) {
 	for (int i = 0; i < token_rights_size; i++) {
 		if (strcmp(token, token_rights[i]->token) == 0) {

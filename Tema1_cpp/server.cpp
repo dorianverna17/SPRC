@@ -66,6 +66,7 @@ authorization_token_t *request_authorization_1_svc(char **p, struct svc_req *cl)
 			pair = (user_access_token *) malloc(sizeof(user_access_token));
 			pair->authorization_token = t->token;
 			pair->access_token = NULL;
+			pair->reset_token = NULL;
 			pair->timeout = -1;
 			token_pairs[token_pairs_size] = pair;
 			token_pairs_size += 1;
@@ -87,16 +88,43 @@ access_token_t *request_access_token_1_svc(client_access_t *p, struct svc_req *c
 	user_access_token *pair;
 
 	t = (access_token_t *) malloc(sizeof(access_token_t));
+
 	if (!rights) {
 		t->token = NULL;
+		t->reset_token = NULL;
 		t->status = REQUEST_DENIED;
+		t->timeout = 0;
+		return t;
+	}
+
+	/* take care of renewal */
+	pair = get_token_pair_auth(auth);
+	if (rights != NULL && p->reset == 1 && pair->timeout <= 0
+		&& pair->access_token != NULL) {
+		pair->reset = 1;
+		pair->access_token = generate_access_token(pair->reset_token);
+		pair->reset_token = generate_access_token(pair->access_token);
+		pair->timeout = token_timeout;
+
+		t->token = pair->access_token;
+		t->status = STATUS_OK;
+		t->timeout = token_timeout;
+		t->reset_token = pair->reset_token;
+
+		printf("BEGIN %s AUTHZ REFRESH\n", get_user_status_auth(p->authorization_token)->user_id);
+		printf("  AccessToken = %s\n", t->token);
+		printf("  RefreshToken = %s\n", t->reset_token);
+
 		return t;
 	}
 
 	if (rights->rights->size == 0) {
 		t->token = (char *) malloc(TOKEN_LEN * sizeof(char));
 		strcpy(t->token, "");
+		t->reset_token = (char *) malloc(TOKEN_LEN * sizeof(char));
+		strcpy(t->reset_token, "");
 		t->status = REQUEST_DENIED;
+		t->timeout = 0;
 	} else {
 		t->token = generate_access_token(auth);
 		/* print the access token */
@@ -106,7 +134,18 @@ access_token_t *request_access_token_1_svc(client_access_t *p, struct svc_req *c
 		/* update the token pairs list */
 		pair = get_token_pair_auth(auth);
 		pair->access_token = t->token;
+		if (p->reset == 1) {
+			pair->reset_token = generate_access_token(pair->access_token);
+			printf("  RefreshToken = %s\n", pair->reset_token);
+		} else {
+			pair->reset_token = (char *) malloc(TOKEN_LEN * sizeof(char));
+			strcpy(pair->reset_token, "");
+		}
 		pair->timeout = token_timeout;
+		pair->reset = p->reset;
+
+		t->reset_token = pair->reset_token;
+		t->timeout = token_timeout;
 	}
 
 	return t;
@@ -123,6 +162,10 @@ int *validate_delegated_action_1_svc(action_request_t *p, struct svc_req *cl) {
 	/* default value */
 	*t = PERMISSION_DENIED;
 
+	user_access_token *pair;
+
+	pair = get_token_pair_access(access_token);
+
 	if (instruction == MODIFY) {
 		strcpy(action, "MODIFY");
 	} else if (instruction == EXECUTE) {
@@ -133,11 +176,12 @@ int *validate_delegated_action_1_svc(action_request_t *p, struct svc_req *cl) {
 		strcpy(action, "INSERT");
 	} else if (instruction == READ) {
 		strcpy(action, "READ");
-	}
-
-	user_access_token *pair;
-
-	pair = get_token_pair_access(access_token);
+	} else {
+		*t = OPERATION_NOT_PERMITTED;
+		pair->timeout -= 1;
+		printf("DENY (%s,%s,%s,%d)\n", action, resource, pair->access_token, pair->timeout);
+		return t;
+	}	
 
 	if (pair == NULL) {
 		*t = PERMISSION_DENIED;
@@ -157,11 +201,6 @@ int *validate_delegated_action_1_svc(action_request_t *p, struct svc_req *cl) {
 		*t = PERMISSION_GRANTED;
 		pair->timeout -= 1;
 		printf("PERMIT (%s,%s,%s,%d)\n", action, resource, pair->access_token, pair->timeout);
-
-		// /* erase the access token if it expired */
-		// if (pair->timeout <= 0) {
-		// 	strcpy(pair->access_token, "");
-		// }
 	}
 
 	return t;

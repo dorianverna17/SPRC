@@ -29,18 +29,20 @@ struct authorization_token_t {
 struct access_token_t {
 	status_t status;
 	string token<TOKEN_LEN>;
+	string reset_token<TOKEN_LEN>;
+	int timeout;
 };
 
 struct client_access_t {
 	string user_id<TOKEN_LEN>;
 	string authorization_token<TOKEN_LEN>;
+	int reset;
 };
 
 struct action_request_t {
 	instruction_t instruction;
 	string resource<FILE_NAME_LEN>;
 	string access_token<TOKEN_LEN>;
-
 };
 
 program RPC_OAUTH_PROGRAM {

@@ -46,6 +46,10 @@ xdr_access_token_t (XDR *xdrs, access_token_t *objp)
 		 return FALSE;
 	 if (!xdr_string (xdrs, &objp->token, 15))
 		 return FALSE;
+	 if (!xdr_string (xdrs, &objp->reset_token, 15))
+		 return FALSE;
+	 if (!xdr_int (xdrs, &objp->timeout))
+		 return FALSE;
 	return TRUE;
 }
 
@@ -57,6 +61,8 @@ xdr_client_access_t (XDR *xdrs, client_access_t *objp)
 	 if (!xdr_string (xdrs, &objp->user_id, 15))
 		 return FALSE;
 	 if (!xdr_string (xdrs, &objp->authorization_token, 15))
+		 return FALSE;
+	 if (!xdr_int (xdrs, &objp->reset))
 		 return FALSE;
 	return TRUE;
 }
