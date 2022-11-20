@@ -7,7 +7,7 @@
 #
 # Completati/schimbati urmatoarele valori inainte de utilizare:
 SERVER_NAME="server"
-SERVER_PARAMS="tests/test$1/userIDs.db tests/test$1/resources.db tests/test$1/approvals.db 2"
+SERVER_PARAMS="tests/test$1/userIDs.db tests/test$1/resources.db tests/test$1/approvals.db"
 CLIENT_NAME="client"
 CLIENT_PARAMS="tests/test$1/client.in"
 SERVER_ADDR="localhost"
@@ -24,9 +24,32 @@ fi
 
 numberPattern='^[0-9]+$'
 if [[ $1 =~ $numberPattern ]]; then
-    ./$SERVER_NAME $SERVER_PARAMS > server.out &
+    if [[ $1 -eq 1 ]]
+	then
+		TTL="2"
+	elif [[ $1 -eq 2 ]]
+	then
+		TTL="2"
+	elif [[ $1 -eq 3 ]]
+	then
+		TTL="2"
+	elif [[ $1 -eq 4 ]]
+	then
+		TTL="3"
+	elif [[ $1 -eq 5 ]]
+	then
+		TTL="4"
+	elif [[ $1 -eq 6 ]]
+	then
+		TTL="5"
+	elif [[ $1 -eq 7 ]]
+	then
+		TTL="3"
+	fi
+	stdbuf -oL ./$SERVER_NAME $SERVER_PARAMS $TTL > server.out &
     SERVER_PID=$!
-    ./$CLIENT_NAME $CLIENT_PARAMS > client.out
+	sleep 1
+    stdbuf -oL ./$CLIENT_NAME $CLIENT_PARAMS > client.out
     kill $SERVER_PID
 
     if [ $# -gt 1 ] && [ $2 -eq 1 ]; then
@@ -62,9 +85,34 @@ if [[ $1 =~ $numberPattern ]]; then
 else
     for i in {1..7}
     do
-        ./$SERVER_NAME $SERVER_PARAMS > server.out &
+		if [[ $i -eq 1 ]]
+		then
+			TTL="2"
+		elif [[ $i -eq 2 ]]
+		then
+			TTL="2"
+		elif [[ $i -eq 3 ]]
+		then
+			TTL="2"
+		elif [[ $i -eq 4 ]]
+		then
+			TTL="3"
+		elif [[ $i -eq 5 ]]
+		then
+			TTL="4"
+		elif [[ $i -eq 6 ]]
+		then
+			TTL="5"
+		elif [[ $i -eq 7 ]]
+		then
+			TTL="3"
+		fi
+		SERVER_PARAMS="tests/test$i/userIDs.db tests/test$i/resources.db tests/test$i/approvals.db"
+        CLIENT_PARAMS="tests/test$i/client.in"
+		stdbuf -oL ./$SERVER_NAME $SERVER_PARAMS $TTL > server.out &
         SERVER_PID=$!
-        ./$CLIENT_NAME $SERVER_ADDR $CLIENT_PARAMS > client.out
+		sleep 1
+        stdbuf -oL ./$CLIENT_NAME $CLIENT_PARAMS > client.out
         kill $SERVER_PID
 
         diff server.out tests/test$i/expected_output/server.out > /dev/null

@@ -16,16 +16,6 @@ xdr_status_t (XDR *xdrs, status_t *objp)
 }
 
 bool_t
-xdr_instruction_t (XDR *xdrs, instruction_t *objp)
-{
-	register int32_t *buf;
-
-	 if (!xdr_enum (xdrs, (enum_t *) objp))
-		 return FALSE;
-	return TRUE;
-}
-
-bool_t
 xdr_authorization_token_t (XDR *xdrs, authorization_token_t *objp)
 {
 	register int32_t *buf;
@@ -72,7 +62,7 @@ xdr_action_request_t (XDR *xdrs, action_request_t *objp)
 {
 	register int32_t *buf;
 
-	 if (!xdr_instruction_t (xdrs, &objp->instruction))
+	 if (!xdr_string (xdrs, &objp->instruction, 50))
 		 return FALSE;
 	 if (!xdr_string (xdrs, &objp->resource, 50))
 		 return FALSE;

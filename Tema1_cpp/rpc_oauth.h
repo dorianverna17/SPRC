@@ -26,16 +26,6 @@ enum status_t {
 };
 typedef enum status_t status_t;
 
-enum instruction_t {
-	REQUEST = 0,
-	MODIFY = 1,
-	EXECUTE = 2,
-	DELETE = 3,
-	INSERT = 4,
-	READ = 5,
-};
-typedef enum instruction_t instruction_t;
-
 struct authorization_token_t {
 	status_t status;
 	char *token;
@@ -58,7 +48,7 @@ struct client_access_t {
 typedef struct client_access_t client_access_t;
 
 struct action_request_t {
-	instruction_t instruction;
+	char *instruction;
 	char *resource;
 	char *access_token;
 };
@@ -102,7 +92,6 @@ extern int rpc_oauth_program_1_freeresult ();
 
 #if defined(__STDC__) || defined(__cplusplus)
 extern  bool_t xdr_status_t (XDR *, status_t*);
-extern  bool_t xdr_instruction_t (XDR *, instruction_t*);
 extern  bool_t xdr_authorization_token_t (XDR *, authorization_token_t*);
 extern  bool_t xdr_access_token_t (XDR *, access_token_t*);
 extern  bool_t xdr_client_access_t (XDR *, client_access_t*);
@@ -110,7 +99,6 @@ extern  bool_t xdr_action_request_t (XDR *, action_request_t*);
 
 #else /* K&R C */
 extern bool_t xdr_status_t ();
-extern bool_t xdr_instruction_t ();
 extern bool_t xdr_authorization_token_t ();
 extern bool_t xdr_access_token_t ();
 extern bool_t xdr_client_access_t ();

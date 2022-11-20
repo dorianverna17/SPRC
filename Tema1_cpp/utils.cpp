@@ -1,30 +1,45 @@
 #include "utils.h"
 
+/* ttl of a certain token */
 extern int token_timeout;
+
+/* files we read from */
 extern char *client_file;
 extern char *resources_file;
 extern char *approvals_file;
 
+/* existent users */
 extern char **user_ids;
-extern char **resources;
-extern struct approvals_t **approvals;
+extern int users_no;
 
+/* existent resources */
+extern char **resources;
+extern int resources_no;
+
+/* existent file permissions */
+extern struct approvals_t **approvals;
+extern int approvals_no;
+
+/* list of permissions assigned to a certain auth token */
 extern int token_rights_size;
 extern struct token_rights_t **token_rights;
 
-extern int users_no;
-extern int resources_no;
-extern int approvals_no;
-
-extern int status_size;
+/* the list of user- authorization token pairs */
 extern struct client_access_t **statuses;
+extern int status_size;
 
-/* index used  */
+/* index used for the approvals line count read */
 extern int approvals_index;
 
+/* list of auth token - access token - reset token tuples */
 extern user_access_token **token_pairs;
 extern int token_pairs_size;
 
+/* 
+ * function that returns the details (auth token and
+ * if it uses automatic token renewal) of a user
+ * (given the user id)
+ */
 client_access_t *get_user_status(char *user) {
 	for (int i = 0; i < status_size; i++) {
 		if (strcmp(user, statuses[i]->user_id) == 0) {
@@ -34,6 +49,11 @@ client_access_t *get_user_status(char *user) {
 	return NULL;
 }
 
+/* 
+ * function that returns the details (auth token, user
+ * id and if it uses automatic token renewal) of a user
+ * (given the authorization token)
+ */
 client_access_t *get_user_status_auth(char *auth) {
 	for (int i = 0; i < status_size; i++) {
 		if (strcmp(auth, statuses[i]->authorization_token) == 0) {
@@ -43,6 +63,10 @@ client_access_t *get_user_status_auth(char *auth) {
 	return NULL;
 }
 
+/*
+ * function that returns the set of permissions
+ * associated with a certain token
+ */
 struct token_rights_t *get_token_status(char *token) {
 	for (int i = 0; i < token_rights_size; i++) {
 		if (strcmp(token, token_rights[i]->token) == 0) {
@@ -52,6 +76,10 @@ struct token_rights_t *get_token_status(char *token) {
 	return NULL;
 }
 
+/*
+ * function that returns all the tokens currently
+ * associated with the given authorization token
+ */
 user_access_token *get_token_pair_auth(char *auth_token) {
 	for (int i = 0; i < token_pairs_size; i++) {
 		if (strcmp(auth_token, token_pairs[i]->authorization_token) == 0) {
@@ -61,6 +89,10 @@ user_access_token *get_token_pair_auth(char *auth_token) {
 	return NULL;
 }
 
+/*
+ * function that returns all the tokens currently
+ * associated with the given access token
+ */
 user_access_token *get_token_pair_access(char *access_token) {
 	for (int i = 0; i < token_pairs_size; i++) {
 		if (token_pairs[i]->access_token &&
@@ -71,6 +103,11 @@ user_access_token *get_token_pair_access(char *access_token) {
 	return NULL;
 }
 
+/*
+ * function that checks if the set of permissions
+ * for a certain access token allows the given
+ * action to take place on the given resource
+ */
 bool check_resource_existence(char *resource) {
 	for (int i = 0; i < resources_no; i++) {
 		if (strcmp(resource, resources[i]) == 0) {
@@ -80,6 +117,10 @@ bool check_resource_existence(char *resource) {
 	return false;
 }
 
+/*
+ * function that checks if a certain operation
+ * doesn't violate the existing permissions
+ */
 bool check_operation_permitted(char *action, char *access_token, char *resource) {
 	user_access_token *pair;
 
@@ -107,6 +148,7 @@ bool check_operation_permitted(char *action, char *access_token, char *resource)
 	return false;
 }
 
+/* function that reads the input from the files */
 void read_files() {
 	int size;
 	char buffer[BUFF_LEN];

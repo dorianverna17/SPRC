@@ -18,34 +18,40 @@
 #define SIG_PF void(*)(int)
 #endif
 
+/* ttl of a certain token */
 int token_timeout;
+
+/* files we read from */
 char *client_file;
 char *resources_file;
 char *approvals_file;
 
+/* existent users */
 char **user_ids;
-char **resources;
-struct approvals_t **approvals;
+int users_no;
 
+/* existent resources */
+char **resources;
+int resources_no;
+
+/* existent file permissions */
+struct approvals_t **approvals;
+int approvals_no;
+
+/* list of permissions assigned to a certain auth token */
 int token_rights_size;
 struct token_rights_t **token_rights;
 
-int users_no;
-int resources_no;
-int approvals_no;
-
-int status_size;
+/* the list of user- authorization token pairs */
 struct client_access_t **statuses;
+int status_size;
 
-/*
- * the list of authorization tokens and their
- * correspondent access tokens;
- */
+/* index used for the approvals line count read */
+int approvals_index;
+
+/* list of auth token - access token - reset token tuples */
 user_access_token **token_pairs;
 int token_pairs_size;
-
-/* index used  */
-int approvals_index;
 
 static void
 rpc_oauth_program_1(struct svc_req *rqstp, register SVCXPRT *transp)
@@ -116,6 +122,7 @@ main (int argc, char **argv)
 
 	pmap_unset (RPC_OAUTH_PROGRAM, RPC_OAUTH_VERS);
 
+	/* read from the files given as arguments */
 	client_file = argv[1];
 	resources_file = argv[2];
 	approvals_file = argv[3];

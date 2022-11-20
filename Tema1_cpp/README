@@ -1,0 +1,100 @@
+Verna Dorian-Alexandru 341C1
+
+Fisiere in care se regaseste implementarea:
+- client.cpp
+- rpc_oauth_svc.c
+- rpc_oauth.x
+- server.cpp
+- utils.cpp
+- utils.h
+
+Ce am implementat in rpc_oauth.x:
+- am niste define-uri cu lungimile necesare pt diferite string-uri
+- am facut e enumeratie pt status-urile returnate in fiecare procedura
+- am 4 structuri in care am pus ceea ce primeste si intoarce fiecare
+  procedura, acolo unde este necesar. Voi explica la proceduri ce ia
+  fiecare si ce intoarce
+
+Ce am implementat in rpc_oauth_svc.c:
+- Acesta e fisierul care e generat la rpcgen
+- Am adaugat cateva linii in cod care imi citesc din fisiere
+  valorile dorite de server
+- Am declarat o serie de variabile globale precum lista de
+  resurse si lista de approvals
+
+Ce am implementat in client.cpp:
+- Cele mai importante functii sunt main-ul, functia de citire din
+fisier si functia de executare a actiunilor din client.in
+- In functia de executare a actiunilor din client.in, flow-ul este
+  urmatorul
+    -> itereaza prin toate actiunile
+    -> ia user-ul care efectueaza actiunea
+    -> vezi ce status are user-ul respectiv (token de autorizare, acces etc.)
+    -> vezi daca trebuie sa ii reinnoiesti token-ul de acces
+    -> vezi daca face o actiune de tip REQUEST
+      -- call la procedura de request_authorization_token
+      -- call la procedura de approve_request_token
+      -- call la procedura de request_access_token
+    -> vezi daca face o alta actiune
+      -- call la procedura de validate_delegated_action
+    -> repeta pt urmatoarea iteratie
+
+Ce am implementat in server.cpp:
+- Am implementat cele 4 proceduri
+- Server-ul se foloseste si de niste functii ajutatoare definite
+  in fisierele utils.cpp si utils.h
+- request_authorization_token
+  -> primeste user-ul si intoarce token-ul impreuna cu status-ul acestuia
+- request_access_token
+  -> primeste token-ul de autorizare, user-ul si daca user-ul a optat
+     pentru reinnoire
+  -> intoarce status-ul, tokenul de access, cel de reset (daca este cazul)
+     si valoaarea de timeout
+  -> daca jetonul nu trebuie reinnoit, atunci se verifica daca utilizatorul
+     a aprobat inainte
+  -> daca jetonul trebuie reinnoit, atunci doar se reinnoieste
+  -> daca jetonul nu trebuie reinnoit si utilizatorul a aprobat, atunci
+     se genereaza jetoanele de access si refresh (daca trebuie)
+- validate_delegated_action
+  -> primeste actiunea, resursa si token-ul de access
+  -> intoarce status-ul actiunii
+  -> verifica daca actiunea se poate face in conformitate cu permisiunile
+- approve_request_token
+  -> asigneaza permisiuni unui token de autorizare
+  -> primeste token-ul, intoarce token-ul
+
+Ce am implementat in utils.h si utils.cpp:
+- Am implementat cateva functii pe care le folosesc pentru cautarea
+  de resurse, useri, tokeni in listele pe care le am
+- am o functie care imi citeste fisierele mele
+- am o functie putin mai complicata decat celelalte care se uita daca
+  o actiune se poate realiza pe o anumita resurse avand o serie de
+  permisiuni
+
+Tot ce am explicat mai sus e explicat mai bine in cod prin
+comentarii (din punctul meu de vedere).
+
+Ce fisiere am in arhiva:
+- teste
+- check.sh
+- sursele de mai sus
+- Makefile
+
+!!! am pus in arhiva si rpc_oauth_svc.c
+M-am asigurat in Makefile ca acest fisier nu va fi creat de fiecare data.
+De fiecare data cand dau make, se face si rpcgen, dar folosesc un fisier
+intermediar pentru a redirecta ce am in rpc_oaut_svc.c in fisierul acesta
+si inapoi (pentru a nu pierde ce am implementat acolo).
+Nu am facut o chestie extraordinar de desteapta (am facut un if mai ciudat
+in Makefile dar csf). Am aflat la laborator ca era o smecherie cu
+rpcgen -m dar deja am facut tema asa si mi-a fost lene sa mai schimb.
+
+Am modificat scriptul de testare ca sa imi puna argumentele potrivite.
+Am if-uri pentru a da ca parametru comenzii si valorile pentru ttl.
+
+Per total a fost o tema interesanta, la inceput nu prea mi-a placut pentru
+ca nu mi se parea asa de bine explicata, dar lucrand la ea am descoperit
+ca am de invata din ea lucruri. Good job!
+
+Timp de rezolvare: ~15 ore
+Dificultate: medie

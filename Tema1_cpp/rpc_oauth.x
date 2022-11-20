@@ -1,5 +1,6 @@
 #define TOKEN_LEN 15
 #define FILE_NAME_LEN 50
+#define INSTRUCTION_LEN 50
 
 enum status_t {
 	STATUS_OK = 0,
@@ -10,15 +11,6 @@ enum status_t {
 	RESOURCE_NOT_FOUND = 5,
 	OPERATION_NOT_PERMITTED = 6,
 	PERMISSION_GRANTED = 7
-};
-
-enum instruction_t {
-	REQUEST = 0,
-	MODIFY = 1,
-	EXECUTE = 2,
-	DELETE = 3,
-	INSERT = 4,
-	READ = 5
 };
 
 struct authorization_token_t {
@@ -40,7 +32,7 @@ struct client_access_t {
 };
 
 struct action_request_t {
-	instruction_t instruction;
+	string instruction<INSTRUCTION_LEN>;
 	string resource<FILE_NAME_LEN>;
 	string access_token<TOKEN_LEN>;
 };
