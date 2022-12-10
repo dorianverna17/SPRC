@@ -1,0 +1,63 @@
+version: '3.3'
+
+services:
+  database:
+    image: mongo:latest
+    container_name: database
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin
+      MONGO_INITDB_DATABASE: mongo
+      MONGODB_DATA_DIR: /database
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_volume:/database
+    networks:
+      - rest_api
+      - web_gui
+  
+  server:
+    build:
+      context: .
+      dockerfile: rest_api/Dockerfile
+    restart: always
+    environment:
+      MONGODB_DATABASE: mongo
+      MONGODB_PORT: 27107
+      MONGODB_USERNAME: admin
+      MONGODB_PASSWORD: admin
+      MONGODB_HOSTNAME: database
+    ports:
+      - "5000:5000"
+    depends_on:
+      - database
+    networks:
+      - rest_api
+
+  db_gui:
+    image: mongo-express
+    container_name: mongo-express
+    restart: always
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_BASICAUTH_USERNAME: user
+      ME_CONFIG_BASICAUTH_PASSWORD: user
+      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
+      ME_CONFIG_MONGODB_ADMINPASSWORD: admin
+      ME_CONFIG_MONGODB_URL: "mongodb://admin:admin@database:27017/"
+    depends_on:
+      - database
+    networks:
+      - web_gui
+
+networks:
+  rest_api:
+    name: rest_api
+  web_gui:
+    name: web_gui
+
+volumes:
+  mongo_volume: {}
