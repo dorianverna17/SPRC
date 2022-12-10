@@ -14,6 +14,11 @@ services:
       - "27017:27017"
     volumes:
       - mongo_volume:/database
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 10s
+      retries: 5
     networks:
       - rest_api
       - web_gui
@@ -22,6 +27,7 @@ services:
     build:
       context: .
       dockerfile: rest_api/Dockerfile
+    container_name: server
     restart: always
     environment:
       MONGODB_DATABASE: mongo
@@ -30,7 +36,7 @@ services:
       MONGODB_PASSWORD: admin
       MONGODB_HOSTNAME: database
     ports:
-      - "5000:5000"
+      - "6000:6000"
     depends_on:
       - database
     networks:
@@ -49,7 +55,8 @@ services:
       ME_CONFIG_MONGODB_ADMINPASSWORD: admin
       ME_CONFIG_MONGODB_URL: "mongodb://admin:admin@database:27017/"
     depends_on:
-      - database
+      database:
+        condition: service_healthy
     networks:
       - web_gui
 

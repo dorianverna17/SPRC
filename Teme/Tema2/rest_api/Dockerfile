@@ -7,6 +7,6 @@ RUN pip install -r requirements.txt
 ADD rest_api/server.py /rest_api/
 WORKDIR /rest_api
 
-EXPOSE 5000
+EXPOSE 6000
 
 CMD ["python3", "server.py"]

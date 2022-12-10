@@ -31,33 +31,43 @@ def add_country():
 		payload['lon'] is None:
 		return Response(status=400)
 
-	if db.cities is None:
+	if db.countries is None:
 		return Response(status=400)
 
-	index_cities = 0
-	cities_list = list(db.cities.find())
-	if len(cities_list) != 0:
-		for city in cities_list:
-			if city["_id"] > index_cities:
-				index_cities = city["_id"]
-		index_cities += 1
+	index_countries = 0
+	countries_list = list(db.countries.find())
+	if len(countries_list) != 0:
+		for country in countries_list:
+			if country["_id"] > index_countries:
+				index_countries = country["_id"]
+		index_countries += 1
 
-	city = {'_id': index_cities, 'name': payload['nume'], 'lat': payload['lat'], 'lon': payload['lon']}
-	db.cities.insert_one(city)
-	return jsonify({'id': index_cities}), Response(status=200)
+	country = {'_id': index_countries, 'nume': payload['nume'], 'lat': payload['lat'], 'lon': payload['lon']}
+	db.countries.insert_one(country)
+	return jsonify({'id': index_countries}), 201
 
 @app.route("/api/countries", methods=["GET"])
 def get_contries():
-	cities_list = list(db.cities.find())
-	return jsonify(cities_list), Response(status=200)
+	countries_list = list(db.countries.find())
+	countries_list = [{'id': country['_id'], 'nume': country['nume'], 'lat': country['lat'], \
+		'lon': country['lon']} for country in countries_list]
+	return jsonify(countries_list), 200
 
 @app.route("/api/countries/<int:id>", methods=["PUT"])
 def modify_country(id):
-	pass
+	update_data = request.json
+	if update_data is None:
+		return Response(status=400)
+	db.countries.find_one_and_update({'_id': id}, \
+		{"$set": update_data})
+	return Response(status=200)
 
 @app.route("/api/countries/<int:id>", methods=["DELETE"])
 def delete_country(id):
-	pass
+	if db.countries.count_documents({"_id": id}) == 0:
+		return Response(status=400)
+	db.countries.delete_one({'_id': id})
+	return Response(status=200)
 
 """
 Functiile urmatoare realizeaza operatiile necesare
@@ -112,4 +122,4 @@ def delete_temperature(id):
 	pass
 
 if __name__ == '__main__':
-	app.run('0.0.0.0', debug=True)
+	app.run('0.0.0.0', port=6000, debug=True)
