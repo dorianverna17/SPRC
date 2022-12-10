@@ -74,8 +74,39 @@ Functiile urmatoare realizeaza operatiile necesare
 pentru cities
 """
 @app.route("/api/cities", methods=["POST"])
-def add_city(country, lat, lon):
-	pass
+def add_city():
+	payload = request.get_json(silent=True)
+	if not payload:
+		return Response(status=400)
+
+	if payload['idTara'] is None or \
+		payload['nume'] is None or \
+		payload['lat'] is None or \
+		payload['lon'] is None:
+		return Response(status=400)
+
+	if db.countries is None:
+		return Response(status=400)
+
+	if db.cities is None:
+		return Response(status=400)
+
+	# Check existence of country
+	if db.countries.count_documents({"_id": payload['idTara']}) == 0:
+		return Response(status=400)
+
+	index_cities = 0
+	cities_list = list(db.cities.find())
+	if len(cities_list) != 0:
+		for city in cities_list:
+			if city["_id"] > index_cities:
+				index_cities = city["_id"]
+		index_cities += 1
+
+	city = {'_id': index_cities, 'idTara': payload['idTara'], 'nume': payload['nume'], \
+		'lat': payload['lat'], 'lon': payload['lon']}
+	db.cities.insert_one(city)
+	return jsonify({'id': index_cities}), 201
 
 @app.route("/api/cities", methods=["GET"])
 def get_cities():
