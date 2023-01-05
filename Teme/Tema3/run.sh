@@ -1,4 +1,4 @@
 #!/bin/bash
 
-docker stack rm sprc3
+docker build -t adapter .
 docker stack deploy -c stack.yml sprc3

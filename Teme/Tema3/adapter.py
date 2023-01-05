@@ -10,7 +10,11 @@ def on_connect(client, userdata, flags, rc):
 
 # The callback for when a PUBLISH message is received from the server.
 def on_message(client, userdata, msg):
-    print(msg.topic+" "+str(msg.payload))
+    pass
+    #print(msg.topic+" "+str(msg.payload))
+
+url="database_influx"
+client_database = influxdb_client.InfluxDBClient(url=url)
 
 client = mqtt.Client()
 client.on_connect = on_connect
@@ -21,9 +25,6 @@ client.loop_start()
 
 time.sleep(1)
 while True:
-    msg = input()
-    if msg == 'exit':
-        break
     time.sleep(1)
 
 client.loop_stop()
